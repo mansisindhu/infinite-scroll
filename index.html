@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infinite scroll</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        #root {
+            display: flex;
+            gap: 10px;
+            max-width: 990px;
+            margin: 16px auto;
+            justify-content: center;
+        }
+
+        .col {
+            display: flex;
+            flex-direction: column;
+            width: calc(33.333% - 10px);
+        }
+
+        img {
+            margin-bottom: 10px;
+            border-radius: 6px;
+        }
+
+        .intersection {
+            width: 100%;
+            height: 1px;
+        }
+
+        @media (max-width: 600px) {
+            .col:last-child {
+                display: none;
+            }
+
+            .col {
+                width: calc(50% - 10px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root">
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col"></div>
+    </div>
+    <div class="intersection"></div>
+
+    <script src="./script.js"></script>
+</body>
+
+</html>
