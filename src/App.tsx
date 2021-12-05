@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 interface State {
   pageNumber: number;
@@ -44,12 +44,11 @@ const App: React.FC = () => {
     return colToStart;
   };
 
-  const fetchImages = () => {
-    if (state.isLoading) return;
+  const fetchImages = useCallback((pageNumber: number) => {
     setState((prev) => ({ ...prev, isLoading: true }));
 
     fetch(
-      `https://api.unsplash.com/photos/?client_id=n0m9fCcyNtFOR1NH_m-v3wX8lGPxPd2agoL4pd2w0KM&per_page=10&page=${state.pageNumber}`
+      `https://api.unsplash.com/photos/?client_id=n0m9fCcyNtFOR1NH_m-v3wX8lGPxPd2agoL4pd2w0KM&per_page=10&page=${pageNumber}`
     )
       .then((res) => {
         return res.json();
@@ -78,7 +77,7 @@ const App: React.FC = () => {
           };
         });
       });
-  };
+  }, []);
 
   const onResize = () => {
     const currentMaxCols = setMaxCols();
@@ -87,22 +86,24 @@ const App: React.FC = () => {
       maxCols.current = currentMaxCols;
       setState((prev) => ({ ...prev, isLoading: true }));
       let colNumber = 0;
-      const imagesMap: string[][] = [[], [], []];
 
-      state.images.forEach((image) => {
-        imagesMap[colNumber].push(image);
-        colNumber++;
+      setState((prev) => {
+        const { images, imagesMap } = prev;
+        images.forEach((image) => {
+          imagesMap[colNumber].push(image);
+          colNumber++;
 
-        if (colNumber === currentMaxCols) {
-          colNumber = 0;
-        }
+          if (colNumber === currentMaxCols) {
+            colNumber = 0;
+          }
+        });
+
+        return {
+          ...prev,
+          isLoading: false,
+          imagesMap,
+        };
       });
-
-      setState((prev) => ({
-        ...prev,
-        isLoading: false,
-        imagesMap,
-      }));
     }
   };
 
@@ -110,7 +111,7 @@ const App: React.FC = () => {
     console.log({ state });
     entries.forEach((entry) => {
       if (entry.isIntersecting && !state.isLoading) {
-        fetchImages();
+        fetchImages(state.pageNumber);
       }
     });
   };
@@ -119,19 +120,21 @@ const App: React.FC = () => {
 
   useEffect(() => {
     maxCols.current = setMaxCols();
-    fetchImages();
-  }, []);
+    fetchImages(1);
+  }, [fetchImages]);
 
   useEffect(() => {
     observer.current = new IntersectionObserver(callback, options);
 
-    if (target.current && observer.current) {
-      observer.current.observe(target.current);
+    const currentTarget = target.current;
+
+    if (currentTarget && observer.current) {
+      observer.current.observe(currentTarget);
     }
 
     return () => {
-      if (target.current && observer.current) {
-        observer.current.unobserve(target.current);
+      if (currentTarget && observer.current) {
+        observer.current.unobserve(currentTarget);
       }
     };
   }, [state.isLoading]);
@@ -150,7 +153,11 @@ const App: React.FC = () => {
         {state.imagesMap.map((col, colIndex) => (
           <div key={colIndex} className="col">
             {col.map((image, index) => (
-              <img src={image} key={`${colIndex}-${index}`} />
+              <img
+                src={image}
+                key={`${colIndex}-${index}`}
+                alt={`${colIndex}-${index}`}
+              />
             ))}
           </div>
         ))}
