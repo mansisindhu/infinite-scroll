@@ -108,7 +108,6 @@ const App: React.FC = () => {
   };
 
   const callback: IntersectionObserverCallback = (entries, _) => {
-    console.log({ state });
     entries.forEach((entry) => {
       if (entry.isIntersecting && !state.isLoading) {
         fetchImages(state.pageNumber);
